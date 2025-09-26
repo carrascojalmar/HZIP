@@ -86,8 +86,8 @@
 #' str(fit)
 #' }
 #'
-#' @importFrom stats glm model.frame model.matrix model.response optim pnorm
-#' @importFrom dplyr group_by group_split
+#' @import stats
+#' @import dplyr
 #' @import Formula
 #' @import pscl
 #' @import statmod
@@ -100,7 +100,7 @@ hzip <- function(formula, data, hessian = TRUE, method = "BFGS", Q = 15,
 
   xlist <- lapply(data_list, function(df) model.matrix(Formula(formula), df, rhs = 1))
   wlist <- lapply(data_list, function(df) model.matrix(Formula(formula), df, rhs = 2))
-  ylist <- lapply(data_list, function(df) model.response(model.frame(formula, df)))
+  ylist <- lapply(data_list, function(df) model.response(model.frame(Formula(formula), df)))
 
   lhs <- formula(Formula(formula), lhs = 1, rhs = 0)
   rhs1 <- formula(Formula(formula), lhs = 0, rhs = 1)
@@ -114,7 +114,7 @@ hzip <- function(formula, data, hessian = TRUE, method = "BFGS", Q = 15,
                       link="cloglog")
 
 
-  initial <- c(1, -as.numeric(fit.aux$coefficients$zero), 1,
+  initial <- c(1, as.numeric(fit.aux$coefficients$zero), 1,
                as.numeric(fit.aux$coefficients$count))
 
   QGauss <- statmod::gauss.quad(Q, kind = "hermite")
@@ -163,7 +163,7 @@ hzip <- function(formula, data, hessian = TRUE, method = "BFGS", Q = 15,
 }
 
 #' @export
-print.MCR <- function(x, ...) {
+print.HZIP <- function(x, ...) {
   cat("Call:\n")
   print(x$call)
 

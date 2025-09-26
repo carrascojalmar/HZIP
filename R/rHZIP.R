@@ -107,10 +107,10 @@ rgengamma <- function(n, mu=0, sigma=1, lambda, zero=0.0001) {
 #'
 #' @seealso \code{\link{hzip}} for model fitting.
 #'
-#' @importFrom dplyr filter
-#' @importFrom tibble tibble
+#' @import tibble
 #' @import Formula
 #' @import stats
+#' @import dplyr
 #' @export
 
 rHZIP <- function(n,m,para,x1,x2){
@@ -133,12 +133,12 @@ rHZIP <- function(n,m,para,x1,x2){
   conta2 <- vector()
   i <- 1
   while(i <=n){
-    s.aux1 <- dplyr::filter(sample1,ind==i)
+    s.aux1 <- filter(sample1,ind==i)
     b1 <-  rgengamma(n = 1, mu = 0, sigma = lambda1, lambda =lambda1)
     eta1 <- as.matrix(s.aux1[,1:ncol(x1)])%*%beta1+b1
     p <- 1-exp(-exp(eta1))
 
-    s.aux2 <- dplyr::filter(sample2,ind==i)
+    s.aux2 <- filter(sample2,ind==i)
     b2 <- rgengamma(n = 1, mu = 0, sigma = lambda2, lambda =lambda2)
     eta2 <- as.matrix(s.aux2[,1:ncol(x2)])%*%beta2+b2
     mu <- exp(eta2)

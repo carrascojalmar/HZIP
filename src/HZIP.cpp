@@ -318,47 +318,51 @@ double dBerLGG(NumericVector& theta1,
 
 
  // [[Rcpp::export]]
-double dZIP(NumericVector& theta1,
-                    NumericVector& theta2,
-                    NumericMatrix& xi,
-                    NumericMatrix& wi,
-                    IntegerVector& yi,
-                    NumericVector& Qnodes,
-                    NumericVector& Qweights,
-                    bool log = false) {
+ double dZIP(NumericVector& theta1,
+             NumericVector& theta2,
+             NumericMatrix& xi,
+             NumericMatrix& wi,
+             IntegerVector& yi,
+             NumericVector& Qnodes,
+             NumericVector& Qweights,
+             bool log = false) {
 
    int mi = yi.size();
-
    IntegerVector lZ(mi);
    for (int r = 0; r < mi; r++) {
-       lZ[r] = (yi[r] == 0) ? 1 : 0;
+     lZ[r] = (yi[r] == 0) ? 1 : 0;
    }
 
    NumericMatrix mS = Kappas(lZ);
    int nrowsS = mS.nrow();
 
-   NumericVector I12(nrowsS);
-     for (int j = 0; j < nrowsS; j++) {
-       NumericVector kj(mi);
-       for (int r = 0; r < mi; r++){
-         kj[r] = mS(j,r);
-         }
-
-       double I1 = dBerLGG(theta1,xi,yi,kj);
-       double I2 = dPoisLGG_AGHQ(theta2,wi,yi,kj,Qnodes,Qweights);
-
-       I12[j] = I1 * I2;
+   NumericVector logI12(nrowsS);
+   for (int j = 0; j < nrowsS; j++) {
+     NumericVector kj(mi);
+     for (int r = 0; r < mi; r++) {
+       kj[r] = mS(j,r);
      }
 
-    double ld = std::accumulate(I12.begin(), I12.end(), 0.0);
+     double I1 = std::max(dBerLGG(theta1, xi, yi, kj), 1e-15);
+     double I2 = std::max(dPoisLGG_AGHQ(theta2, wi, yi, kj, Qnodes, Qweights), 1e-15);
 
-     if (log) {
-       return std::log(ld);
-     } else {
-       return (ld);
-     }
+     logI12[j] = std::log(I1) + std::log(I2);
+   }
+
+   // log-sum-exp
+   double maxlog = max(logI12);
+   double sumexp = 0.0;
+   for (int j = 0; j < nrowsS; j++) {
+     sumexp += std::exp(logI12[j] - maxlog);
+   }
+   double ld = maxlog + std::log(sumexp);
+
+   if (log) {
+     return ld;
+   } else {
+     return std::exp(ld);
+   }
  }
-
 
 // [[Rcpp::export]]
 double lvero(NumericVector theta, List xlist, List wlist, List ylist,
