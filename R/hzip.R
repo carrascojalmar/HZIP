@@ -86,15 +86,19 @@
 #' str(fit)
 #' }
 #'
-#' @import stats
-#' @import dplyr
+#' @importFrom stats model.frame model.matrix model.response optim pnorm
+#' @importFrom dplyr group_by group_split
+#' @importFrom pscl zeroinfl
+#' @importFrom statmod gauss.quad
 #' @import Formula
-#' @import pscl
-#' @import statmod
 #' @export
 hzip <- function(formula, data, hessian = TRUE, method = "BFGS", Q = 15,
                  control=NULL,...) {
 
+  if (!"Ind" %in% names(data)) stop("data must contain 'Ind'")
+  if (length(unique(data$Ind)) != max(as.integer(factor(data$Ind)))) {
+    data <- dplyr::mutate(data, Ind = as.integer(factor(Ind)))
+  }
 
   data_list <- dplyr::group_split(dplyr::group_by(data, Ind))
 
@@ -121,6 +125,8 @@ hzip <- function(formula, data, hessian = TRUE, method = "BFGS", Q = 15,
   Qnodes <- QGauss$nodes
   Qweights <- QGauss$weights
 
+  control <- if (is.null(control)) list() else control
+
   op <- optim(
     par = initial,
     fn = lvero,
@@ -131,13 +137,24 @@ hzip <- function(formula, data, hessian = TRUE, method = "BFGS", Q = 15,
     Qweights = Qweights,
     method = method,
     hessian = hessian,
-    control = list(),
+    control = control,
     ...
   )
 
   p1 <- dim(xlist[[1]])[2]
   p2 <- dim(wlist[[1]])[2]
 
+  ep <- NULL
+  if (!is.null(op$hessian) && is.matrix(op$hessian)) {
+    ok <- TRUE
+    ep <- tryCatch({
+      sqrt(diag(solve(op$hessian)))
+    }, error = function(e) {
+      ok <<- FALSE
+      rep(NA_real_, length(op$par))
+    })
+    if (!ok) warning("Hessian not invertible; std. errors set to NA.")
+  }
 
   fit.hzip <- list(
     call = match.call(),
@@ -146,12 +163,11 @@ hzip <- function(formula, data, hessian = TRUE, method = "BFGS", Q = 15,
     coefficients_count = op$par[(p1+3):(p1+p2+2)],
     scale_zero = op$par[1],
     scale_count= op$par[(p1+2)],
-    loglik = op$value,
+    loglik = -op$value,
     convergence =op$convergence,
     n = nrow(data),
-    n = max(data$Ind),
     m = as.numeric(table(data$Ind)),
-    ep = sqrt(diag(solve(op$hessian))),
+    ep = ep,
     iter = op$counts[1],
     method = method,
     optim = op,
@@ -164,23 +180,16 @@ hzip <- function(formula, data, hessian = TRUE, method = "BFGS", Q = 15,
 
 #' @export
 print.HZIP <- function(x, ...) {
-  cat("Call:\n")
-  print(x$call)
-
-  cat("\nCoefficients (Zero part):\n")
-  print(round(x$coefficients_zero, 4))
-
-  cat("\nCoefficients (Count part):\n")
-  print(round(x$coefficients_count, 4))
-
-  cat("\nZero scale:\n")
-  print(round(x$scale_zero, 4))
-
-  cat("\nCount scale:\n")
-  print(round(x$scale_count, 4))
-
-  cat("\nLog-likelihood:", round(x$loglik, 4), "\n")
+  cat("Call:\n"); print(x$call)
+  cat("\nCoefficients (Zero part):\n"); print(round(x$coefficients_zero, 4))
+  cat("\nCoefficients (Count part):\n"); print(round(x$coefficients_count, 4))
+  cat("\nZero scale:\n"); print(round(x$scale_zero, 4))
+  cat("\nCount scale:\n"); print(round(x$scale_count, 4))
+  cat("\nlogLik:", round(x$logLik, 4),
+      "  (conv =", x$convergence, ", iter =", x$iter, ")\n")
+  invisible(x)
 }
+
 
 #' @export
 summary.HZIP <- function(object, ...) {
@@ -202,11 +211,17 @@ summary.HZIP <- function(object, ...) {
   p1 <- ncol(x)
   p2 <- ncol(w)
 
-  std_scale_zero <- ep[1]
-  std_coeff_zero <- ep[2:(p1+1)]
-
-  std_scale_count <- ep[(p1+2)]
-  std_coeff_count <- ep[(p1+3):(p1+p2+2)]
+  if (!is.null(ep) && length(ep) == (p1 + p2 + 2)) {
+    std_scale_zero  <- ep[1]
+    std_coeff_zero  <- ep[2:(p1 + 1)]
+    std_scale_count <- ep[(p1 + 2)]
+    std_coeff_count <- ep[(p1 + 3):(p1 + p2 + 2)]
+  } else {
+    std_scale_zero  <- NA_real_
+    std_coeff_zero  <- rep(NA_real_, length(coef_zero))
+    std_scale_count <- NA_real_
+    std_coeff_count <- rep(NA_real_, length(coef_count))
+  }
 
 
   z_beta_zero <- coef_zero / std_coeff_zero
@@ -283,5 +298,7 @@ print.summary.HZIP <- function(x, digits = 5, ...) {
 
   cat("\nCount Scale:\n")
   print(format(x$scale_count, digits = digits, nsmall = digits), quote = FALSE)
+
+  invisible(x)
 
 }

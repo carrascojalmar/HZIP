@@ -116,6 +116,21 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// zip_cdf_cpp
+NumericVector zip_cdf_cpp(NumericVector coefficients_zero, NumericVector coefficients_count, List xlist, List wlist, List ylist);
+RcppExport SEXP _HZIP_zip_cdf_cpp(SEXP coefficients_zeroSEXP, SEXP coefficients_countSEXP, SEXP xlistSEXP, SEXP wlistSEXP, SEXP ylistSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type coefficients_zero(coefficients_zeroSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type coefficients_count(coefficients_countSEXP);
+    Rcpp::traits::input_parameter< List >::type xlist(xlistSEXP);
+    Rcpp::traits::input_parameter< List >::type wlist(wlistSEXP);
+    Rcpp::traits::input_parameter< List >::type ylist(ylistSEXP);
+    rcpp_result_gen = Rcpp::wrap(zip_cdf_cpp(coefficients_zero, coefficients_count, xlist, wlist, ylist));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_HZIP_Kappas", (DL_FUNC) &_HZIP_Kappas, 1},
@@ -125,6 +140,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_HZIP_dBerLGG", (DL_FUNC) &_HZIP_dBerLGG, 4},
     {"_HZIP_dZIP", (DL_FUNC) &_HZIP_dZIP, 8},
     {"_HZIP_lvero", (DL_FUNC) &_HZIP_lvero, 6},
+    {"_HZIP_zip_cdf_cpp", (DL_FUNC) &_HZIP_zip_cdf_cpp, 5},
     {NULL, NULL, 0}
 };
 

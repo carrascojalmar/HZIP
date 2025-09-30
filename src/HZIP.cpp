@@ -1,10 +1,7 @@
-// [[Rcpp::depends(RcppParallel)]]
+// [[Rcpp::depends(Rcpp)]]
 #include <Rcpp.h>
-#include <RcppParallel.h>
-#include <cmath>
-#include <numeric>
 using namespace Rcpp;
-using namespace RcppParallel;
+
 
 // [[Rcpp::export]]
 NumericMatrix Kappas(IntegerVector y) {
@@ -386,4 +383,47 @@ double lvero(NumericVector theta, List xlist, List wlist, List ylist,
     total += logli;
   }
   return -total;
+}
+
+// [[Rcpp::export]]
+
+NumericVector zip_cdf_cpp(NumericVector coefficients_zero,
+                          NumericVector coefficients_count,
+                          List xlist, List wlist, List ylist){
+  int n = ylist.size();
+
+  NumericVector cdf(n);
+  for (int i = 0; i < n; i++) {
+    NumericMatrix xi = xlist[i];
+    NumericMatrix wi = wlist[i];
+    int p1 = xi.ncol();
+    int p2 = wi.ncol();
+
+    IntegerVector yi = ylist[i];
+    int mi = yi.size();
+
+    NumericVector piHat(mi);
+    for (int i = 0; i < mi; i++) {
+      double xb = 0.0;
+      for (int j = 0; j < p1; j++) xb += xi(i,j) * coefficients_zero[j];
+      piHat[i] = 1-std::exp(-std::exp(xb));
+    }
+
+    NumericVector muHat(mi);
+    for (int i = 0; i < mi; i++) {
+      double xb = 0.0;
+      for (int j = 0; j < p2; j++) xb += wi(i,j)*coefficients_count[j];
+      muHat[i] = std::exp(xb);
+    }
+
+    if (yi[i] <= 0) {
+      cdf[i] = piHat[i] + (1.0 - piHat[i]) * std::exp(-muHat[i]);
+      } else {
+        cdf[i] = piHat[i] +
+          (1.0 - piHat[i]) * R::ppois(yi[i],
+           muHat[i],true, false);
+      }
+
+    return cdf;
+  }
 }

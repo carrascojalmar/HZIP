@@ -29,3 +29,7 @@ lvero <- function(theta, xlist, wlist, ylist, Qnodes, Qweights) {
     .Call(`_HZIP_lvero`, theta, xlist, wlist, ylist, Qnodes, Qweights)
 }
 
+zip_cdf_cpp <- function(coefficients_zero, coefficients_count, xlist, wlist, ylist) {
+    .Call(`_HZIP_zip_cdf_cpp`, coefficients_zero, coefficients_count, xlist, wlist, ylist)
+}
+
