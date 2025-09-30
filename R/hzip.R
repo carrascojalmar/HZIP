@@ -92,7 +92,8 @@
 #' @importFrom statmod gauss.quad
 #' @import Formula
 #' @export
-hzip <- function(formula, data, hessian = TRUE, method = "BFGS", Q = 15,
+hzip <- function(formula, data, hessian = TRUE, method = "BFGS",
+                 Q = 15, lower = -Inf, upper = Inf,
                  control=NULL,...) {
 
   if (!"Ind" %in% names(data)) stop("data must contain 'Ind'")
@@ -118,7 +119,8 @@ hzip <- function(formula, data, hessian = TRUE, method = "BFGS", Q = 15,
                       link="cloglog")
 
 
-  initial <- c(1, as.numeric(fit.aux$coefficients$zero), 1,
+  initial <- c(rbeta(1,0.5,0.5), -as.numeric(fit.aux$coefficients$zero),
+               rbeta(1,0.5,0.5),
                as.numeric(fit.aux$coefficients$count))
 
   QGauss <- statmod::gauss.quad(Q, kind = "hermite")
@@ -138,6 +140,8 @@ hzip <- function(formula, data, hessian = TRUE, method = "BFGS", Q = 15,
     method = method,
     hessian = hessian,
     control = control,
+    lower = lower,
+    upper = upper,
     ...
   )
 

@@ -10,6 +10,8 @@ hzip(
   hessian = TRUE,
   method = "BFGS",
   Q = 15,
+  lower = -Inf,
+  upper = Inf,
   control = NULL,
   ...
 )
