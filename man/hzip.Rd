@@ -13,6 +13,7 @@ hzip(
   lower = -Inf,
   upper = Inf,
   control = NULL,
+  initial,
   ...
 )
 }

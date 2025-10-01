@@ -94,7 +94,7 @@
 #' @export
 hzip <- function(formula, data, hessian = TRUE, method = "BFGS",
                  Q = 15, lower = -Inf, upper = Inf,
-                 control=NULL,...) {
+                 control=NULL,initial,...) {
 
   if (!"Ind" %in% names(data)) stop("data must contain 'Ind'")
   if (length(unique(data$Ind)) != max(as.integer(factor(data$Ind)))) {
@@ -107,21 +107,21 @@ hzip <- function(formula, data, hessian = TRUE, method = "BFGS",
   wlist <- lapply(data_list, function(df) model.matrix(Formula(formula), df, rhs = 2))
   ylist <- lapply(data_list, function(df) model.response(model.frame(Formula(formula), df)))
 
-  lhs <- formula(Formula(formula), lhs = 1, rhs = 0)
-  rhs1 <- formula(Formula(formula), lhs = 0, rhs = 1)
-  rhs2 <- formula(Formula(formula), lhs = 0, rhs = 2)
+  #lhs <- formula(Formula(formula), lhs = 1, rhs = 0)
+  #rhs1 <- formula(Formula(formula), lhs = 0, rhs = 1)
+  #rhs2 <- formula(Formula(formula), lhs = 0, rhs = 2)
 
-  fAux <- paste(deparse(lhs[[2]]), "~",
-                      deparse(rhs2[[2]]), "|",
-                      deparse(rhs1[[2]]))
+  #fAux <- paste(deparse(lhs[[2]]), "~",
+  #                    deparse(rhs2[[2]]), "|",
+  #                    deparse(rhs1[[2]]))
 
-  fit.aux <- zeroinfl(Formula(as.formula(fAux)),data=data, dist = "poisson",
-                      link="cloglog")
+  #fit.aux <- zeroinfl(Formula(as.formula(fAux)),data=data, dist = "poisson",
+  #                    link="cloglog")
 
 
-  initial <- c(rbeta(1,0.5,0.5), -as.numeric(fit.aux$coefficients$zero),
-               rbeta(1,0.5,0.5),
-               as.numeric(fit.aux$coefficients$count))
+  #initial <- c(rbeta(1,0.5,0.5), -as.numeric(fit.aux$coefficients$zero),
+  #             rbeta(1,0.5,0.5),
+  #             as.numeric(fit.aux$coefficients$count))
 
   QGauss <- statmod::gauss.quad(Q, kind = "hermite")
   Qnodes <- QGauss$nodes
