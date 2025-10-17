@@ -116,18 +116,77 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// zip_cdf_cpp
-NumericVector zip_cdf_cpp(NumericVector coefficients_zero, NumericVector coefficients_count, List xlist, List wlist, List ylist);
-RcppExport SEXP _HZIP_zip_cdf_cpp(SEXP coefficients_zeroSEXP, SEXP coefficients_countSEXP, SEXP xlistSEXP, SEXP wlistSEXP, SEXP ylistSEXP) {
+// mlez_hat
+double mlez_hat(NumericVector theta, List xlist, List wlist, List ylist);
+RcppExport SEXP _HZIP_mlez_hat(SEXP thetaSEXP, SEXP xlistSEXP, SEXP wlistSEXP, SEXP ylistSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type coefficients_zero(coefficients_zeroSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type coefficients_count(coefficients_countSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type theta(thetaSEXP);
     Rcpp::traits::input_parameter< List >::type xlist(xlistSEXP);
     Rcpp::traits::input_parameter< List >::type wlist(wlistSEXP);
     Rcpp::traits::input_parameter< List >::type ylist(ylistSEXP);
-    rcpp_result_gen = Rcpp::wrap(zip_cdf_cpp(coefficients_zero, coefficients_count, xlist, wlist, ylist));
+    rcpp_result_gen = Rcpp::wrap(mlez_hat(theta, xlist, wlist, ylist));
+    return rcpp_result_gen;
+END_RCPP
+}
+// PMF_cpp
+NumericVector PMF_cpp(NumericVector pi, NumericVector u, IntegerVector Y);
+RcppExport SEXP _HZIP_PMF_cpp(SEXP piSEXP, SEXP uSEXP, SEXP YSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type pi(piSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type u(uSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type Y(YSEXP);
+    rcpp_result_gen = Rcpp::wrap(PMF_cpp(pi, u, Y));
+    return rcpp_result_gen;
+END_RCPP
+}
+// CDF_cpp
+NumericVector CDF_cpp(NumericVector pi, NumericVector u, IntegerVector Y);
+RcppExport SEXP _HZIP_CDF_cpp(SEXP piSEXP, SEXP uSEXP, SEXP YSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type pi(piSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type u(uSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type Y(YSEXP);
+    rcpp_result_gen = Rcpp::wrap(CDF_cpp(pi, u, Y));
+    return rcpp_result_gen;
+END_RCPP
+}
+// r_ij_cpp_vec
+NumericVector r_ij_cpp_vec(NumericVector theta1, NumericVector theta2, NumericMatrix vB, IntegerVector Y, NumericMatrix w1, NumericMatrix w2, std::string type);
+RcppExport SEXP _HZIP_r_ij_cpp_vec(SEXP theta1SEXP, SEXP theta2SEXP, SEXP vBSEXP, SEXP YSEXP, SEXP w1SEXP, SEXP w2SEXP, SEXP typeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type theta1(theta1SEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type theta2(theta2SEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type vB(vBSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type w1(w1SEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type w2(w2SEXP);
+    Rcpp::traits::input_parameter< std::string >::type type(typeSEXP);
+    rcpp_result_gen = Rcpp::wrap(r_ij_cpp_vec(theta1, theta2, vB, Y, w1, w2, type));
+    return rcpp_result_gen;
+END_RCPP
+}
+// predict_HZIP_cpp_vec
+NumericMatrix predict_HZIP_cpp_vec(List ylist, List xlist, List wlist, NumericVector theta1, NumericVector theta2, NumericVector nodes, NumericVector weights);
+RcppExport SEXP _HZIP_predict_HZIP_cpp_vec(SEXP ylistSEXP, SEXP xlistSEXP, SEXP wlistSEXP, SEXP theta1SEXP, SEXP theta2SEXP, SEXP nodesSEXP, SEXP weightsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type ylist(ylistSEXP);
+    Rcpp::traits::input_parameter< List >::type xlist(xlistSEXP);
+    Rcpp::traits::input_parameter< List >::type wlist(wlistSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type theta1(theta1SEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type theta2(theta2SEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type nodes(nodesSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type weights(weightsSEXP);
+    rcpp_result_gen = Rcpp::wrap(predict_HZIP_cpp_vec(ylist, xlist, wlist, theta1, theta2, nodes, weights));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -140,7 +199,11 @@ static const R_CallMethodDef CallEntries[] = {
     {"_HZIP_dBerLGG", (DL_FUNC) &_HZIP_dBerLGG, 4},
     {"_HZIP_dZIP", (DL_FUNC) &_HZIP_dZIP, 8},
     {"_HZIP_lvero", (DL_FUNC) &_HZIP_lvero, 6},
-    {"_HZIP_zip_cdf_cpp", (DL_FUNC) &_HZIP_zip_cdf_cpp, 5},
+    {"_HZIP_mlez_hat", (DL_FUNC) &_HZIP_mlez_hat, 4},
+    {"_HZIP_PMF_cpp", (DL_FUNC) &_HZIP_PMF_cpp, 3},
+    {"_HZIP_CDF_cpp", (DL_FUNC) &_HZIP_CDF_cpp, 3},
+    {"_HZIP_r_ij_cpp_vec", (DL_FUNC) &_HZIP_r_ij_cpp_vec, 7},
+    {"_HZIP_predict_HZIP_cpp_vec", (DL_FUNC) &_HZIP_predict_HZIP_cpp_vec, 7},
     {NULL, NULL, 0}
 };
 

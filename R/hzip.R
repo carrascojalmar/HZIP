@@ -1,17 +1,17 @@
-#' Fit a Hierarchical Zero-Inflated Poisson (HZIP) Model via GHQ
+#' Fit a Hierarchical Zero-Inflated Poisson (HZIP) Model
 #'
 #' \code{hzip()} fits a longitudinal/clustered zero-inflated Poisson model with
-#' subject-level random effects by maximizing a (marginal) likelihood approximated
-#' with Gauss–Hermite quadrature. The model uses a two-part \link[Formula]{Formula}:
-#' \eqn{y ~ \text{count part} \mid \text{zero part}}, where the count intensity
+#' subject-level random effects by maximizing a (marginal) likelihood approximated.
+#' The model uses a two-part \link[Formula]{Formula}:
+#' \eqn{y ~ \text{zero part} \mid \text{count part}}, where the count intensity
 #' (Poisson mean) and the zero-inflation probability are linked to (possibly
 #' different) sets of covariates. Initial values are obtained from
 #' \code{pscl::zeroinfl(..., dist = "poisson", link = "cloglog")}.
 #'
 #' @param formula A two-part \link[Formula]{Formula} of the form
-#'   \code{y ~ x_count + ... | w_zero + ...}, where the right-hand side before
-#'   the bar specifies covariates for the Poisson mean and the right-hand side
-#'   after the bar specifies covariates for the zero-inflation component.
+#'   \code{y ~w_zero + ... | x_count + ... }, where the right-hand side before
+#'   the bar specifies covariates for the zero-inflation component and the right-hand side
+#'   after the bar specifies covariates for the Poisson mean.
 #' @param data A \code{data.frame} containing all variables used in \code{formula}
 #'   and a subject identifier named \code{Ind} (one row per observation).
 #' @param hessian Logical; if \code{TRUE} (default) the observed Hessian at the
@@ -87,14 +87,14 @@
 #' }
 #'
 #' @importFrom stats model.frame model.matrix model.response optim pnorm
-#' @importFrom dplyr group_by group_split
 #' @importFrom pscl zeroinfl
 #' @importFrom statmod gauss.quad
 #' @import Formula
+#' @importFrom dplyr group_split group_by mutate filter
 #' @export
 hzip <- function(formula, data, hessian = TRUE, method = "BFGS",
                  Q = 15, lower = -Inf, upper = Inf,
-                 control=NULL,initial,...) {
+                 control=NULL,...) {
 
   if (!"Ind" %in% names(data)) stop("data must contain 'Ind'")
   if (length(unique(data$Ind)) != max(as.integer(factor(data$Ind)))) {
@@ -107,21 +107,21 @@ hzip <- function(formula, data, hessian = TRUE, method = "BFGS",
   wlist <- lapply(data_list, function(df) model.matrix(Formula(formula), df, rhs = 2))
   ylist <- lapply(data_list, function(df) model.response(model.frame(Formula(formula), df)))
 
-  #lhs <- formula(Formula(formula), lhs = 1, rhs = 0)
-  #rhs1 <- formula(Formula(formula), lhs = 0, rhs = 1)
-  #rhs2 <- formula(Formula(formula), lhs = 0, rhs = 2)
+  lhs <- formula(Formula(formula), lhs = 1, rhs = 0)
+  rhs1 <- formula(Formula(formula), lhs = 0, rhs = 1)
+  rhs2 <- formula(Formula(formula), lhs = 0, rhs = 2)
 
-  #fAux <- paste(deparse(lhs[[2]]), "~",
-  #                    deparse(rhs2[[2]]), "|",
-  #                    deparse(rhs1[[2]]))
+  fAux <- paste(deparse(lhs[[2]]), "~",
+                      deparse(rhs2[[2]]), "|",
+                      deparse(rhs1[[2]]))
 
-  #fit.aux <- zeroinfl(Formula(as.formula(fAux)),data=data, dist = "poisson",
-  #                    link="cloglog")
+  fit.aux <- zeroinfl(Formula(as.formula(fAux)),data=data, dist = "poisson",
+                      link="cloglog")
 
 
-  #initial <- c(rbeta(1,0.5,0.5), -as.numeric(fit.aux$coefficients$zero),
-  #             rbeta(1,0.5,0.5),
-  #             as.numeric(fit.aux$coefficients$count))
+  initial <- c(rbeta(1,0.5,0.5), -as.numeric(fit.aux$coefficients$zero),
+               rbeta(1,0.5,0.5),
+               as.numeric(fit.aux$coefficients$count))
 
   QGauss <- statmod::gauss.quad(Q, kind = "hermite")
   Qnodes <- QGauss$nodes
@@ -160,6 +160,8 @@ hzip <- function(formula, data, hessian = TRUE, method = "BFGS",
     if (!ok) warning("Hessian not invertible; std. errors set to NA.")
   }
 
+  loglikz <- mlez_hat(op$par, xlist, wlist, ylist)
+
   fit.hzip <- list(
     call = match.call(),
     formula = formula,
@@ -168,6 +170,11 @@ hzip <- function(formula, data, hessian = TRUE, method = "BFGS",
     scale_zero = op$par[1],
     scale_count= op$par[(p1+2)],
     loglik = -op$value,
+    loglikz =loglikz,
+    AIC = -2 * op$value + 2 * length(ep),
+    BIC = -2 * op$value + log(nrow(data)) * length(ep),
+    AICz = -2 * loglikz + 2 * length(ep),
+    BICz = -2 * loglikz + log(nrow(data)) * length(ep),
     convergence =op$convergence,
     n = nrow(data),
     m = as.numeric(table(data$Ind)),
@@ -211,6 +218,7 @@ summary.HZIP <- function(object, ...) {
   value <- object$loglik
   n <- object$n
   convergence <- object$convergence
+  loglikz <- object$loglikz
 
   p1 <- ncol(x)
   p2 <- ncol(w)
@@ -267,8 +275,11 @@ summary.HZIP <- function(object, ...) {
   out <- list(
     call = object$call,
     loglik = value,
+    loglikz=loglikz,
     AIC = -2 * value + 2 * length(ep),
     BIC = -2 * value + log(n) * length(ep),
+    AICz = -2 * loglikz + 2 * length(ep),
+    BICz = -2 * loglikz + log(n) * length(ep),
     iter = iter,
     coef_zero = df_coef_zero,
     coef_count = df_coef_count,
@@ -288,6 +299,8 @@ print.summary.HZIP <- function(x, digits = 5, ...) {
   cat("Log-Likelihood:", formatC(x$loglik, digits = digits, format = "f"), "\n")
   cat("AIC:", formatC(x$AIC, digits = digits, format = "f"), "\n")
   cat("BIC:", formatC(x$BIC, digits = digits, format = "f"), "\n")
+  cat("AICz:", formatC(x$AICz, digits = digits, format = "f"), "\n")
+  cat("BICz:", formatC(x$BICz, digits = digits, format = "f"), "\n")
   cat("Number of Iterations:", x$iter, "\n")
   cat("Convergence:", x$convergence, "\n\n")
 

@@ -110,7 +110,7 @@ rgengamma <- function(n, mu=0, sigma=1, lambda, zero=0.0001) {
 #' @import tibble
 #' @import Formula
 #' @import stats
-#' @import dplyr
+#' @importFrom dplyr filter
 #' @export
 
 rHZIP <- function(n,m,para,x1,x2){
@@ -155,7 +155,7 @@ rHZIP <- function(n,m,para,x1,x2){
   }
 
   colnames(x1) <- paste0("x", seq_len(ncol(x1)))
-  xx2 <- matrix(x2[,-1])
+  xx2 <-x2[,-1]
   colnames(xx2) <- paste0("w", seq_len(ncol(x2)-1))
 
 

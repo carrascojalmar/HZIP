@@ -171,11 +171,10 @@ double dPoisLGG_AGHQ(NumericVector& theta2,
   double ld2 = 0.0;
 
   // ===========================================================
-  // CASO GERAL -> AGHQ
+  //  AGHQ
   // ===========================================================
   if (contador != 0 && contador != mi) {
 
-    // Função log-integrando
     auto log_integrand = [&](double b) {
       double val = 0.0;
       for (int j = 0; j < mi; j++) {
@@ -185,11 +184,10 @@ double dPoisLGG_AGHQ(NumericVector& theta2,
         }
         val += -med_aux * k[j];
       }
-      val += dLGG(b, 0.0, lambda, lambda, true); // log densidade LGG
+      val += dLGG(b, 0.0, lambda, lambda, true); // log density LGG
       return val;
     };
 
-    // Derivada numérica 1ª e 2ª ordem
     auto deriv1 = [&](double b) {
       double h = 1e-5;
       return (log_integrand(b + h) - log_integrand(b - h)) / (2*h);
@@ -199,8 +197,7 @@ double dPoisLGG_AGHQ(NumericVector& theta2,
       return (log_integrand(b + h) - 2*log_integrand(b) + log_integrand(b - h)) / (h*h);
     };
 
-    // Newton-Raphson para achar o modo
-    double b_mode = 0.0; // chute inicial
+    double b_mode = 0.0; // initial chute
     for (int it = 0; it < 30; it++) {
       double f1 = deriv1(b_mode);
       double f2 = deriv2(b_mode);
@@ -256,8 +253,6 @@ double dPoisLGG_AGHQ(NumericVector& theta2,
 
   return ld2;
 }
-
-
 
 // [[Rcpp::export]]
 double dBerLGG(NumericVector& theta1,
@@ -386,44 +381,172 @@ double lvero(NumericVector theta, List xlist, List wlist, List ylist,
 }
 
 // [[Rcpp::export]]
+double mlez_hat(NumericVector theta, List xlist, List wlist, List ylist){
 
-NumericVector zip_cdf_cpp(NumericVector coefficients_zero,
-                          NumericVector coefficients_count,
-                          List xlist, List wlist, List ylist){
+  NumericMatrix x1_0 = xlist[0];
+  NumericMatrix w1_0 = wlist[0];
+  int p1 = x1_0.ncol();
+  int p2 = w1_0.ncol();
+
   int n = ylist.size();
+  NumericVector ld(n);
 
-  NumericVector cdf(n);
   for (int i = 0; i < n; i++) {
     NumericMatrix xi = xlist[i];
     NumericMatrix wi = wlist[i];
-    int p1 = xi.ncol();
-    int p2 = wi.ncol();
-
     IntegerVector yi = ylist[i];
+
+    NumericVector theta1 = theta[Range(0, p1)];
+    NumericVector theta2 = theta[Range(p1 + 1, p1 + p2 + 1)];
+
+    double lambda2 = theta2[0];
+    double phi2 = 1.0 / (lambda2 * lambda2);
+
     int mi = yi.size();
 
-    NumericVector piHat(mi);
-    for (int i = 0; i < mi; i++) {
+    NumericVector mu_i(mi);
+    for (int r = 0; r < mi; r++) {
       double xb = 0.0;
-      for (int j = 0; j < p1; j++) xb += xi(i,j) * coefficients_zero[j];
-      piHat[i] = 1-std::exp(-std::exp(xb));
+      for (int c = 0; c < p2; c++) xb += wi(r, c) * theta2[c + 1];
+      mu_i[r] = std::exp(xb);
     }
 
-    NumericVector muHat(mi);
-    for (int i = 0; i < mi; i++) {
-      double xb = 0.0;
-      for (int j = 0; j < p2; j++) xb += wi(i,j)*coefficients_count[j];
-      muHat[i] = std::exp(xb);
+    IntegerVector lZ(mi);
+    for (int r = 0; r < mi; r++) lZ[r] = (yi[r] == 0) ? 1 : 0;
+
+    NumericMatrix mS = Kappas(lZ);
+    int nrowsS = mS.nrow();
+
+    NumericVector I12(nrowsS);
+    double phi2pow = std::pow(phi2, phi2);
+
+    for (int j = 0; j < nrowsS; j++) {
+      NumericVector k_j(mi);
+      for (int r = 0; r < mi; r++) k_j[r] = mS(j, r);
+
+      double I1 = dBerLGG(theta1, xi, yi, k_j);
+
+      double mu_plus = 0.0;
+      for (int r = 0; r < mi; r++) mu_plus += mS(j, r) * mu_i[r];
+
+      I12[j] = phi2pow * pow(mu_plus + phi2, -phi2) * I1;
     }
 
-    if (yi[i] <= 0) {
-      cdf[i] = piHat[i] + (1.0 - piHat[i]) * std::exp(-muHat[i]);
-      } else {
-        cdf[i] = piHat[i] +
-          (1.0 - piHat[i]) * R::ppois(yi[i],
-           muHat[i],true, false);
-      }
-
-    return cdf;
+    ld[i] = std::accumulate(I12.begin(), I12.end(), 0.0);
   }
+
+  double total = 0.0;
+  for (int i = 0; i < n; i++) {
+    if (ld[i] > 1e-15)
+      total += std::log(ld[i]);
+    else
+      total += std::log(1e-15);
+  }
+
+  return total;
+}
+
+// Função auxiliar PMF
+// [[Rcpp::export]]
+NumericVector PMF_cpp(NumericVector pi, NumericVector u, IntegerVector Y){
+  int n = Y.size();
+  NumericVector ll(n);
+  for(int i=0;i<n;i++){
+    if(Y[i]==0){
+      ll[i] = pi[i] + (1.0 - pi[i]) * R::dpois(Y[i], u[i], false);
+    } else {
+      ll[i] = (1.0 - pi[i]) * R::dpois(Y[i], u[i], false);
+    }
+  }
+  return ll;
+}
+
+// Função auxiliar CDF
+// [[Rcpp::export]]
+NumericVector CDF_cpp(NumericVector pi, NumericVector u, IntegerVector Y){
+  int n = Y.size();
+  NumericVector ll(n);
+  for(int i=0;i<n;i++){
+    double F0 = (Y[i]<0) ? 0.0 : 1.0;
+    double GJ = R::ppois(Y[i], u[i], true, false);
+    ll[i] = pi[i] * F0 + (1.0 - pi[i]) * GJ;
+  }
+  return ll;
+}
+
+// Função r_ij
+// [[Rcpp::export]]
+NumericVector r_ij_cpp_vec(NumericVector theta1,
+                           NumericVector theta2,
+                           NumericMatrix vB,
+                           IntegerVector Y,
+                           NumericMatrix w1,
+                           NumericMatrix w2,
+                           std::string type="Pearson") {
+
+  int n = Y.size();
+  NumericVector b1(n), b2(n);
+  for(int i=0;i<n;i++){
+    b1[i] = vB(i,0);
+    b2[i] = vB(i,1);
+  }
+
+  NumericVector eta_hat(n), rho_hat(n), pi_hat(n), u_hat(n);
+  int p1 = w1.ncol();
+  int p2 = w2.ncol();
+
+  for(int i=0;i<n;i++){
+    double xb1 = b1[i];
+    double xb2 = b2[i];
+    for(int j=0;j<p1;j++) xb1 += w1(i,j) * theta1[j+1]; // theta1[0] é sigma
+    for(int j=0;j<p2;j++) xb2 += w2(i,j) * theta2[j+1]; // theta2[0] é sigma
+    eta_hat[i] = xb1;
+    rho_hat[i] = xb2;
+    pi_hat[i] = 1.0 - std::exp(-std::exp(xb1)); // cloglog inverse
+    u_hat[i] = std::exp(xb2);
+  }
+
+  NumericVector r(n);
+  if(type=="Pearson"){
+    for(int i=0;i<n;i++){
+      double EZIP = (1.0 - pi_hat[i]) * u_hat[i];
+      double VarZIP = u_hat[i] * (1.0 - pi_hat[i]) * (1.0 + u_hat[i] * pi_hat[i]);
+      r[i] = (Y[i] - EZIP) / std::sqrt(VarZIP);
+    }
+  } else if(type=="quantile"){
+    NumericVector Fq = CDF_cpp(pi_hat, u_hat, Y - 1) + runif(n) * PMF_cpp(pi_hat, u_hat, Y);
+    for(int i=0;i<n;i++) r[i] = R::qnorm(Fq[i], 0.0, 1.0, 1, 0);
+  } else if(type=="Adj.quantile"){
+    NumericVector u = CDF_cpp(pi_hat, u_hat, Y - 1) + runif(n) * PMF_cpp(pi_hat, u_hat, Y);
+    for(int i=0;i<n;i++) r[i] = R::qnorm(u[i] / std::sqrt(u[i]), 0.0, 1.0, 1, 0);
+  }
+
+  return r;
+}
+
+// Função predict_HZIP_cpp_vec
+// [[Rcpp::export]]
+NumericMatrix predict_HZIP_cpp_vec(List ylist,
+                                   List xlist,
+                                   List wlist,
+                                   NumericVector theta1,
+                                   NumericVector theta2,
+                                   NumericVector nodes,
+                                   NumericVector weights) {
+
+  int n = ylist.size();
+  NumericMatrix vB(n,2);
+
+  for(int i=0;i<n;i++){
+    IntegerVector Yi = ylist[i];
+    NumericMatrix xi = xlist[i];
+    NumericMatrix wi = wlist[i];
+
+    // Aqui chamaria suas integrais adaptadas para C++ (ou aproximadas)
+    // Para simplificação inicial, podemos inicializar b1 e b2 em 0
+    vB(i,0) = 0.0;
+    vB(i,1) = 0.0;
+  }
+
+  return vB;
 }

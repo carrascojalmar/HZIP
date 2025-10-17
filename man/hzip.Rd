@@ -2,7 +2,7 @@
 % Please edit documentation in R/hzip.R
 \name{hzip}
 \alias{hzip}
-\title{Fit a Hierarchical Zero-Inflated Poisson (HZIP) Model via GHQ}
+\title{Fit a Hierarchical Zero-Inflated Poisson (HZIP) Model}
 \usage{
 hzip(
   formula,
@@ -13,15 +13,14 @@ hzip(
   lower = -Inf,
   upper = Inf,
   control = NULL,
-  initial,
   ...
 )
 }
 \arguments{
 \item{formula}{A two-part \link[Formula]{Formula} of the form
-\code{y ~ x_count + ... | w_zero + ...}, where the right-hand side before
-the bar specifies covariates for the Poisson mean and the right-hand side
-after the bar specifies covariates for the zero-inflation component.}
+\code{y ~w_zero + ... | x_count + ... }, where the right-hand side before
+the bar specifies covariates for the zero-inflation component and the right-hand side
+after the bar specifies covariates for the Poisson mean.}
 
 \item{data}{A \code{data.frame} containing all variables used in \code{formula}
 and a subject identifier named \code{Ind} (one row per observation).}
@@ -61,9 +60,9 @@ An object of class \code{"HZIP"}, a \code{list} with elements:
 }
 \description{
 \code{hzip()} fits a longitudinal/clustered zero-inflated Poisson model with
-subject-level random effects by maximizing a (marginal) likelihood approximated
-with Gauss–Hermite quadrature. The model uses a two-part \link[Formula]{Formula}:
-\eqn{y ~ \text{count part} \mid \text{zero part}}, where the count intensity
+subject-level random effects by maximizing a (marginal) likelihood approximated.
+The model uses a two-part \link[Formula]{Formula}:
+\eqn{y ~ \text{zero part} \mid \text{count part}}, where the count intensity
 (Poisson mean) and the zero-inflation probability are linked to (possibly
 different) sets of covariates. Initial values are obtained from
 \code{pscl::zeroinfl(..., dist = "poisson", link = "cloglog")}.
