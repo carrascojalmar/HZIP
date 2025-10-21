@@ -2,7 +2,7 @@
 % Please edit documentation in R/envelope.R
 \name{envelope.HZIP}
 \alias{envelope.HZIP}
-\title{QQ-Plot of Residuals for MCR Model}
+\title{Envelope simulation for HZIP Model}
 \usage{
 envelope.HZIP(object, nsim = 100, ...)
 }

@@ -7,6 +7,11 @@ Authors@R: c(person("Lizandra C.", "Fabio", email = "lizandra.fabio@ufba.br", ro
   person("Jalmar M.F.", "Carrasco", email = "carrasco.jalmar@ufba.br", role = c("aut", "cre")),
   person("Victor H.", "Lachos", email = "hlachos@uconn.edu", role = "aut"),
   person("Ming-Hui", "Chen", email = "ming-hui.chen@uconn.edu", role = "aut"))
+Author: 
+  Lizandra C. Fabio [aut],
+  Jalmar M.F. Carrasco [aut, cre],
+  Victor H. Lachos [aut],
+  Ming-Hui Chen [aut]
 Maintainer: Jalmar M. F. Carrasco <carrasco.jalmar@ufba.br>
 Description: Likelihood-based inference for joint modeling of correlated count and binary outcomes with  extra variability and zeros.
 License: GPL-3
@@ -18,8 +23,4 @@ Imports: Rcpp, Formula, pscl, stats, tibble, dplyr, statmod,
         RcppParallel, cubature, VGAM, ggplot2
 Depends: R (>= 3.5)
 NeedsCompilation: yes
-Packaged: 2025-10-21 21:16:54 UTC; jalmarcarrasco
-Author: Lizandra C. Fabio [aut],
-  Jalmar M.F. Carrasco [aut, cre],
-  Victor H. Lachos [aut],
-  Ming-Hui Chen [aut]
+Packaged: 2025-10-21 21:26:16 UTC; jalmarcarrasco

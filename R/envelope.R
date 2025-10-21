@@ -28,7 +28,7 @@ envelopeRQR <- function(x, nsim = 100) {
     theme(axis.text=element_text(size=25),
           axis.title=element_text(size=25))
 }
-#' QQ-Plot of Residuals for MCR Model
+#' Envelope simulation for HZIP Model
 #'
 #' Produces a Q-Q plot of residuals from a Hierarchical Zero-Inflated Poisson (HZIP) Model fitted via \code{\link{hzip}}.
 #'
