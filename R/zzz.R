@@ -21,7 +21,7 @@
     "by and under the direction of",
     "Jalmar M. F. Carrasco and Lizandra C. Fabio,",
     "with contributions from collaborators and students.",
-    "Main functions: hzip, rHZIP."
+    "Main functions: hzip, residuals, envelope."
   )
 
   # Calcula largura máxima e define margem

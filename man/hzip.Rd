@@ -34,6 +34,10 @@ optimum is returned and used to compute standard-error estimates.}
 \item{Q}{Integer; number of Gauss–Hermite nodes for quadrature (default \code{15}).
 Larger values improve accuracy at higher computational cost.}
 
+\item{lower}{Bounds on the variables for the "L-BFGS-B" method, or bounds in which to search for method "Brent" (arguments passed to \code{\link[stats]{optim}}).}
+
+\item{upper}{method, or bounds in which to search for method "Brent" (arguments passed to \code{\link[stats]{optim}}).}
+
 \item{control}{Optional \code{list} passed to \code{\link[stats]{optim}}'s
 \code{control=} argument (e.g., \code{list(maxit = 500)}).}
 
@@ -87,18 +91,8 @@ to store \code{logLik = -op$value} for user convenience.
 }
 \examples{
 \dontrun{
-set.seed(1)
-# toy panel structure
-n_id <- 50; m_i <- 4
-Ind  <- rep(1:n_id, each = m_i)
-x1   <- rnorm(n_id * m_i)
-w1   <- rbinom(n_id * m_i, 1, 0.5)
-y    <- rpois(n_id * m_i, lambda = exp(0.3 + 0.5*x1))  # placeholder
-dat  <- data.frame(Ind, y, x1, w1)
-
-# count part uses x1; zero part uses w1
-fit <- hzip(y ~ x1 | w1, data = dat, Q = 15)
-str(fit)
+fit.salamander <- hzip(y ~ mined|mined+spp,data = salamanders)
+summary(fit.salamander)
 }
 
 }

@@ -109,7 +109,7 @@ rgengamma <- function(n, mu=0, sigma=1, lambda, zero=0.0001) {
 #'
 #' @import tibble
 #' @import Formula
-#' @import stats
+#' @importFrom stats rgamma rnorm rbinom rpois
 #' @importFrom dplyr filter
 #' @export
 

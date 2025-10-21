@@ -13,12 +13,12 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.2
-LinkingTo: Rcpp, RcppParallel
+LinkingTo: Rcpp, RcppParallel, RcppArmadillo
 Imports: Rcpp, Formula, pscl, stats, tibble, dplyr, statmod,
-        RcppParallel
+        RcppParallel, cubature, VGAM, ggplot2
 Depends: R (>= 3.5)
 NeedsCompilation: yes
-Packaged: 2025-10-17 15:08:48 UTC; carra
+Packaged: 2025-10-21 21:16:54 UTC; jalmarcarrasco
 Author: Lizandra C. Fabio [aut],
   Jalmar M.F. Carrasco [aut, cre],
   Victor H. Lachos [aut],

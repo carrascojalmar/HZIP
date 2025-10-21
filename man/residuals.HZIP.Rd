@@ -4,20 +4,12 @@
 \alias{residuals.HZIP}
 \title{Compute Residuals for HZIP Models}
 \usage{
-\method{residuals}{HZIP}(object, type = c("Pearson", "quantile", "Adj.quantile"), Q = 15, ...)
+residuals.HZIP(object, ...)
 }
 \arguments{
-\item{object}{An object of class \code{HZIP} returned by the fitting function.}
+\item{object}{An object of class \code{HZIP}, typically returned from \code{\link{hzip}}.}
 
-\item{type}{A character string specifying the type of residuals to compute.
-Options are \code{"Pearson"}, \code{"quantile"}, or \code{"Adj.quantile"}.
-Default is \code{"quantile"}.}
-
-\item{...}{Additional arguments (currently ignored).}
-
-\item{nodes}{Numeric vector of quadrature nodes for approximating integrals.}
-
-\item{weights}{Numeric vector of quadrature weights corresponding to \code{nodes}.}
+\item{...}{Additional arguments (not used).}
 }
 \value{
 A numeric vector of residuals with length equal to the total number
@@ -25,8 +17,7 @@ A numeric vector of residuals with length equal to the total number
 }
 \description{
 This function calculates residuals for objects of class \code{HZIP}
-using either Pearson residuals, randomized quantile residuals, or
-adjusted quantile residuals. The computation is performed efficiently
+usingrandomized quantile residuals. The computation is performed efficiently
 using C++ functions for predicting random effects and calculating
 residuals.
 }
@@ -39,9 +30,8 @@ adaptive quadrature based on the supplied \code{nodes} and \code{weights}.
 }
 \examples{
 \dontrun{
-# Assuming fit is an object of class HZIP
-residuals(fit, type="Pearson", nodes=nodes_vec, weights=weights_vec)
-residuals(fit, type="quantile", nodes=nodes_vec, weights=weights_vec)
+fit.salamander <- hzip(y ~ mined|mined+spp,data = salamanders)
+residuals(fit.salamander)
 }
 
 }

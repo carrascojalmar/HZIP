@@ -22,6 +22,8 @@
 #'   Larger values improve accuracy at higher computational cost.
 #' @param control Optional \code{list} passed to \code{\link[stats]{optim}}'s
 #'   \code{control=} argument (e.g., \code{list(maxit = 500)}).
+#' @param lower Bounds on the variables for the "L-BFGS-B" method, or bounds in which to search for method "Brent" (arguments passed to \code{\link[stats]{optim}}).
+#' @param upper method, or bounds in which to search for method "Brent" (arguments passed to \code{\link[stats]{optim}}).
 #' @param ... Further arguments passed to \code{\link[stats]{optim}}.
 #'
 #' @details
@@ -72,18 +74,8 @@
 #'
 #' @examples
 #' \dontrun{
-#' set.seed(1)
-#' # toy panel structure
-#' n_id <- 50; m_i <- 4
-#' Ind  <- rep(1:n_id, each = m_i)
-#' x1   <- rnorm(n_id * m_i)
-#' w1   <- rbinom(n_id * m_i, 1, 0.5)
-#' y    <- rpois(n_id * m_i, lambda = exp(0.3 + 0.5*x1))  # placeholder
-#' dat  <- data.frame(Ind, y, x1, w1)
-#'
-#' # count part uses x1; zero part uses w1
-#' fit <- hzip(y ~ x1 | w1, data = dat, Q = 15)
-#' str(fit)
+#' fit.salamander <- hzip(y ~ mined|mined+spp,data = salamanders)
+#' summary(fit.salamander)
 #' }
 #'
 #' @importFrom stats model.frame model.matrix model.response optim pnorm

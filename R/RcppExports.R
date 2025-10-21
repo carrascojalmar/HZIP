@@ -33,19 +33,3 @@ mlez_hat <- function(theta, xlist, wlist, ylist) {
     .Call(`_HZIP_mlez_hat`, theta, xlist, wlist, ylist)
 }
 
-PMF_cpp <- function(pi, u, Y) {
-    .Call(`_HZIP_PMF_cpp`, pi, u, Y)
-}
-
-CDF_cpp <- function(pi, u, Y) {
-    .Call(`_HZIP_CDF_cpp`, pi, u, Y)
-}
-
-r_ij_cpp_vec <- function(theta1, theta2, vB, Y, w1, w2, type = "Pearson") {
-    .Call(`_HZIP_r_ij_cpp_vec`, theta1, theta2, vB, Y, w1, w2, type)
-}
-
-predict_HZIP_cpp_vec <- function(ylist, xlist, wlist, theta1, theta2, nodes, weights) {
-    .Call(`_HZIP_predict_HZIP_cpp_vec`, ylist, xlist, wlist, theta1, theta2, nodes, weights)
-}
-

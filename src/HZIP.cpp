@@ -1,6 +1,7 @@
-// [[Rcpp::depends(Rcpp)]]
-#include <Rcpp.h>
+#include <RcppArmadillo.h>
+// [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
+using namespace arma;
 
 
 // [[Rcpp::export]]
@@ -444,109 +445,4 @@ double mlez_hat(NumericVector theta, List xlist, List wlist, List ylist){
   }
 
   return total;
-}
-
-// Função auxiliar PMF
-// [[Rcpp::export]]
-NumericVector PMF_cpp(NumericVector pi, NumericVector u, IntegerVector Y){
-  int n = Y.size();
-  NumericVector ll(n);
-  for(int i=0;i<n;i++){
-    if(Y[i]==0){
-      ll[i] = pi[i] + (1.0 - pi[i]) * R::dpois(Y[i], u[i], false);
-    } else {
-      ll[i] = (1.0 - pi[i]) * R::dpois(Y[i], u[i], false);
-    }
-  }
-  return ll;
-}
-
-// Função auxiliar CDF
-// [[Rcpp::export]]
-NumericVector CDF_cpp(NumericVector pi, NumericVector u, IntegerVector Y){
-  int n = Y.size();
-  NumericVector ll(n);
-  for(int i=0;i<n;i++){
-    double F0 = (Y[i]<0) ? 0.0 : 1.0;
-    double GJ = R::ppois(Y[i], u[i], true, false);
-    ll[i] = pi[i] * F0 + (1.0 - pi[i]) * GJ;
-  }
-  return ll;
-}
-
-// Função r_ij
-// [[Rcpp::export]]
-NumericVector r_ij_cpp_vec(NumericVector theta1,
-                           NumericVector theta2,
-                           NumericMatrix vB,
-                           IntegerVector Y,
-                           NumericMatrix w1,
-                           NumericMatrix w2,
-                           std::string type="Pearson") {
-
-  int n = Y.size();
-  NumericVector b1(n), b2(n);
-  for(int i=0;i<n;i++){
-    b1[i] = vB(i,0);
-    b2[i] = vB(i,1);
-  }
-
-  NumericVector eta_hat(n), rho_hat(n), pi_hat(n), u_hat(n);
-  int p1 = w1.ncol();
-  int p2 = w2.ncol();
-
-  for(int i=0;i<n;i++){
-    double xb1 = b1[i];
-    double xb2 = b2[i];
-    for(int j=0;j<p1;j++) xb1 += w1(i,j) * theta1[j+1]; // theta1[0] é sigma
-    for(int j=0;j<p2;j++) xb2 += w2(i,j) * theta2[j+1]; // theta2[0] é sigma
-    eta_hat[i] = xb1;
-    rho_hat[i] = xb2;
-    pi_hat[i] = 1.0 - std::exp(-std::exp(xb1)); // cloglog inverse
-    u_hat[i] = std::exp(xb2);
-  }
-
-  NumericVector r(n);
-  if(type=="Pearson"){
-    for(int i=0;i<n;i++){
-      double EZIP = (1.0 - pi_hat[i]) * u_hat[i];
-      double VarZIP = u_hat[i] * (1.0 - pi_hat[i]) * (1.0 + u_hat[i] * pi_hat[i]);
-      r[i] = (Y[i] - EZIP) / std::sqrt(VarZIP);
-    }
-  } else if(type=="quantile"){
-    NumericVector Fq = CDF_cpp(pi_hat, u_hat, Y - 1) + runif(n) * PMF_cpp(pi_hat, u_hat, Y);
-    for(int i=0;i<n;i++) r[i] = R::qnorm(Fq[i], 0.0, 1.0, 1, 0);
-  } else if(type=="Adj.quantile"){
-    NumericVector u = CDF_cpp(pi_hat, u_hat, Y - 1) + runif(n) * PMF_cpp(pi_hat, u_hat, Y);
-    for(int i=0;i<n;i++) r[i] = R::qnorm(u[i] / std::sqrt(u[i]), 0.0, 1.0, 1, 0);
-  }
-
-  return r;
-}
-
-// Função predict_HZIP_cpp_vec
-// [[Rcpp::export]]
-NumericMatrix predict_HZIP_cpp_vec(List ylist,
-                                   List xlist,
-                                   List wlist,
-                                   NumericVector theta1,
-                                   NumericVector theta2,
-                                   NumericVector nodes,
-                                   NumericVector weights) {
-
-  int n = ylist.size();
-  NumericMatrix vB(n,2);
-
-  for(int i=0;i<n;i++){
-    IntegerVector Yi = ylist[i];
-    NumericMatrix xi = xlist[i];
-    NumericMatrix wi = wlist[i];
-
-    // Aqui chamaria suas integrais adaptadas para C++ (ou aproximadas)
-    // Para simplificação inicial, podemos inicializar b1 e b2 em 0
-    vB(i,0) = 0.0;
-    vB(i,1) = 0.0;
-  }
-
-  return vB;
 }

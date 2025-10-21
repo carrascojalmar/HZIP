@@ -1,18 +1,108 @@
+dLGG <- function(b, mu=0, sigma=1, lambda, log = FALSE, zero=0.0001) {
+  # generalized loggamma density
+  b <- (b-mu)/sigma
+  if (abs(lambda) > zero) {
+    lam2 <- lambda^(-2)
+    res  <- log(abs(lambda))+lam2*log(lam2)+(lam2)*(lambda*b-exp(lambda*b))-lgamma(lam2) - log(sigma)
+    if (!log)
+      res <- exp(res)
+  } else {
+    res <- dnorm(b, mean = 0, sd = 1, log = log)/sigma
+  }
+  return(res)
+}
+PMF.HZIP <- function(vB,Y,w1,w2,theta1,theta2){
+
+  eta.hat <- w1%*%theta1[-1]+vB[1]
+  pi.hat <- clogloglink(eta.hat, bvalue = NULL, inverse = TRUE,
+                        deriv = 0, short = TRUE)
+
+  rho.hat <- w2%*%theta2[-1]+vB[2]
+  u.hat <- exp(rho.hat)
+
+  if(Y==0){
+    ll <- pi.hat+(1-pi.hat)*dpois(Y,lambda=u.hat,log=FALSE)
+  }else{
+    ll <- (1-pi.hat)*dpois(Y,lambda=u.hat,log=FALSE)
+  }
+  return(ll)
+}
+Integrate1.b1 <- function(vB,Y,w1,w2,theta1,theta2){
+  aux1 <- vB[1]*PMF.HZIP(vB,Y,w1,w2,theta1,theta2)
+  aux2 <- dLGG(vB[1], mu=0, sigma=theta1[1], lambda=theta1[1],log = FALSE, zero=0.0001)
+  aux3 <- dLGG(vB[2], mu=0, sigma=theta2[1], lambda=theta2[1],log = FALSE, zero=0.0001)
+  ll <- aux1*aux2*aux3
+  return(ll)
+}
+Integrate1.b2 <- function(vB,Y,w1,w2,theta1,theta2){
+  aux1 <- vB[2]*PMF.HZIP(vB,Y,w1,w2,theta1,theta2)
+  aux2 <- dLGG(vB[1], mu=0, sigma=theta1[1], lambda=theta1[1],log = FALSE, zero=0.0001)
+  aux3 <- dLGG(vB[2], mu=0, sigma=theta2[1], lambda=theta2[1],log = FALSE, zero=0.0001)
+  ll <- aux1*aux2*aux3
+  return(ll)
+}
+Integrate2 <- function(vB,Y,w1,w2,theta1,theta2){
+  aux1 <- PMF.HZIP(vB,Y,w1,w2,theta1,theta2)
+  aux2 <- dLGG(vB[1], mu=0, sigma=theta1[1], lambda=theta1[1],log = FALSE, zero=0.0001)
+  aux3 <- dLGG(vB[2], mu=0, sigma=theta2[1], lambda=theta2[1],log = FALSE, zero=0.0001)
+  ll <- aux1*aux2*aux3
+  return(ll)
+}
+PMF <- function(pi,u,Y){
+  ll <- numeric()
+  n <- length(Y)
+  for(ij in 1:n){
+    if(Y[ij]==0){
+      ll[ij] <- pi[ij]+(1-pi[ij])*dpois(Y[ij],lambda=u[ij],log=FALSE)
+    }else{
+      ll[ij] <- (1-pi[ij])*dpois(Y[ij],lambda=u[ij],log=FALSE)
+    }
+  }
+  return(ll)
+}
+CDF <- function(pi,u,Y){
+  ll <- numeric()
+  n <- length(Y)
+  for(ij in 1:n){
+    F0 <- ifelse(Y[ij]<0,0,1)
+    GJ <- ppois(Y[ij],lambda=u[ij],lower.tail=TRUE,log.p = FALSE)
+    ll[ij] <- pi[ij]*F0+(1-pi[ij])*GJ
+  }
+  return(ll)
+}
+#
+predict.HZIP <- function(Y,w1,w2,theta1,theta2,lower=c(-Inf,-Inf),
+                         upper=c(Inf,Inf)){
+  n <- length(Y)
+  b1 <- numeric()
+  b2 <- numeric()
+  for(i in 1:n){
+    temp1 <- hcubature(Integrate1.b1,lowerLimit=lower,upperLimit=upper,tol=1e-6,
+                       Y=Y[i],w1=w1[i,],
+                       w2=w2[i,],theta1,theta2)$integral
+
+    temp2 <- hcubature(Integrate1.b2,lowerLimit=lower,upperLimit=upper,tol=1e-4,
+                       Y=Y[i],w1=w1[i,],
+                       w2=w2[i,],theta1,theta2)$integral
+    temp3 <- hcubature(Integrate2,lowerLimit=lower,upperLimit=upper,tol=1e-4,
+                       Y=Y[i],w1=w1[i,],
+                       w2=w2[i,],theta1,theta2)$integral
+
+    b1[i] <- temp1/temp3
+    b2[i] <- temp2/temp3
+  }
+  return(data.frame(b1=b1,b2=b2))
+}
+
 #' Compute Residuals for HZIP Models
 #'
 #' This function calculates residuals for objects of class \code{HZIP}
-#' using either Pearson residuals, randomized quantile residuals, or
-#' adjusted quantile residuals. The computation is performed efficiently
+#' usingrandomized quantile residuals. The computation is performed efficiently
 #' using C++ functions for predicting random effects and calculating
 #' residuals.
 #'
-#' @param object An object of class \code{HZIP} returned by the fitting function.
-#' @param type A character string specifying the type of residuals to compute.
-#'   Options are \code{"Pearson"}, \code{"quantile"}, or \code{"Adj.quantile"}.
-#'   Default is \code{"quantile"}.
-#' @param nodes Numeric vector of quadrature nodes for approximating integrals.
-#' @param weights Numeric vector of quadrature weights corresponding to \code{nodes}.
-#' @param ... Additional arguments (currently ignored).
+#' @param object An object of class \code{HZIP}, typically returned from \code{\link{hzip}}.
+#' @param ... Additional arguments (not used).
 #'
 #' @return A numeric vector of residuals with length equal to the total number
 #'   of observations in the dataset.
@@ -26,38 +116,48 @@
 #'
 #' @examples
 #' \dontrun{
-#' # Assuming fit is an object of class HZIP
-#' residuals(fit, type="Pearson", nodes=nodes_vec, weights=weights_vec)
-#' residuals(fit, type="quantile", nodes=nodes_vec, weights=weights_vec)
+#' fit.salamander <- hzip(y ~ mined|mined+spp,data = salamanders)
+#' residuals(fit.salamander)
 #' }
 #'
-#' @importFrom stats model.frame model.matrix model.response qnorm
+#' @importFrom stats ppoints model.frame model.matrix model.response qnorm as.formula dnorm dpois ppois quantile rbeta runif
 #' @importFrom dplyr group_split group_by
+#' @importFrom cubature hcubature
+#' @importFrom VGAM clogloglink
+#'
 #' @export
-residuals.HZIP <- function(object, type=c("Pearson","quantile","Adj.quantile"),
-                           Q=15, ...) {
-  type <- match.arg(type)
+residuals.HZIP <- function(object,...){
 
   formula <- object$formula
-  data <- object$data
-  theta1 <- object$coefficients_zero
-  theta2 <- object$coefficients_count
+  data <-object$data
+  n <- object$n
+  theta1 <- c(object$scale_zero,object$coefficients_zero)
+  theta2 <- c(object$scale_count,object$coefficients_count)
 
-  data_list <- dplyr::group_split(dplyr::group_by(data, Ind))
-  xlist <- lapply(data_list, function(df) model.matrix(Formula(formula), df, rhs=1))
-  wlist <- lapply(data_list, function(df) model.matrix(Formula(formula), df, rhs=2))
-  ylist <- lapply(data_list, function(df) model.response(model.frame(Formula(formula), df)))
+  Y <- model.response(model.frame(Formula(formula), data = data))
+  w1 <- model.matrix(Formula(formula), data = data, rhs = 1)
+  w2 <- model.matrix(Formula(formula), data = data, rhs = 2)
 
-  QGauss <- statmod::gauss.quad(Q, kind = "hermite")
-  nodes <- QGauss$nodes
-  weights <- QGauss$weights
+  vB <- predict.HZIP(Y,w1,w2,theta1,theta2,lower=c(-Inf,-Inf),
+                     upper=c(Inf,Inf))
+  b1 <- vB[,1]
+  b2 <- vB[,2]
 
-  vB <- predict_HZIP_cpp_vec(ylist, xlist, wlist, theta1, theta2, nodes, weights)
+  eta.hat <- w1%*%theta1[-1]+b1
+  pi.hat <- 1-exp(-exp(eta.hat))
 
-  res <- vector("list", length(ylist))
-  for(i in seq_along(ylist))
-    res[[i]] <- r_ij_cpp_vec(theta1, theta2, vB[i,,drop=FALSE], ylist[[i]],
-                             xlist[[i]], wlist[[i]], type)
+  rho.hat <- w2%*%theta2[-1]+b2
+  u.hat <- exp(rho.hat)
 
-  do.call(c, res)
+  E.ZIP <- (1-pi.hat)*u.hat
+  Var.ZIP <- u.hat*(1-pi.hat)*(1+u.hat*pi.hat)
+
+  n <- length(Y)
+
+  Fq <- CDF(pi=pi.hat,u=u.hat,Y=Y-1)+
+      runif(n)*PMF(pi=pi.hat,u=u.hat,Y=Y)
+
+  rq <- qnorm(Fq)
+  return(rq)
 }
+

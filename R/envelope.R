@@ -1,0 +1,60 @@
+envelopeRQR <- function(x, nsim = 100) {
+  n <- length(x)
+  x_sorted <- sort(x)
+  x_theo <- qnorm(ppoints(n))
+
+  sim_res <- matrix(rnorm(nsim * n), nrow = nsim, ncol = n)
+  sim_sorted <- t(apply(sim_res, 1, sort))
+
+
+  lower <- apply(sim_sorted, 2, quantile, probs = 0.025)
+  upper <- apply(sim_sorted, 2, quantile, probs = 0.975)
+  mean_env <- apply(sim_sorted, 2, mean)
+
+
+  y_range <- range(x_sorted, lower, upper)
+
+  df.enve <-data.frame(x_sorted,lower,mean_env,upper)
+
+  ggplot(df.enve) +
+    labs(x = "Theorical quantiles",y="Randomized quantile residuals")+
+    scale_y_continuous(breaks = seq(-3, 3, by = 1)) +
+    stat_qq(aes(sample = x_sorted), colour = "black",size=3) +
+    stat_qq(aes(sample = lower), colour = "blue",geom="line", size=1) +
+    stat_qq(aes(sample = mean_env), colour = "blue",geom="line", size=1) +
+    stat_qq(aes(sample = upper), colour = "blue",geom="line", size=1) +
+    theme_bw()+
+    theme(legend.position="none")+
+    theme(axis.text=element_text(size=25),
+          axis.title=element_text(size=25))
+}
+#' QQ-Plot of Residuals for MCR Model
+#'
+#' Produces a Q-Q plot of residuals from a Hierarchical Zero-Inflated Poisson (HZIP) Model fitted via \code{\link{hzip}}.
+#'
+#' @param object An object of class \code{HZIP}, typically returned by \code{\link{hzip}}.
+#' @param envelope Logical. Whether to add a simulation envelope to the QQ-plot. Default is \code{FALSE}.
+#' @param nsim Integer. Number of simulations used to construct the envelope. Default is \code{100}.
+#' @param ... Additional arguments (currently ignored).
+#'
+#' @details
+#' The function generates QQ-plots of quantile residuals. When \code{envelope = TRUE}, a simulation envelope is added using Monte Carlo replications.
+#'
+#' @return A QQ-plot is produced as a side effect. Nothing is returned.
+#'
+#' @seealso \code{\link{hzip}}, \code{\link{residuals.HZIP}}
+#'
+#' @examples
+#' \dontrun{
+#' data(salamanders)
+#' fit.salamander <- hzip(y ~ mined|mined+spp,data = salamanders)
+#' res <- residuals(fit.salamander)
+#' envelope.HZIP(res, nsim = 5000)
+#' }
+#'
+#' @import ggplot2
+#'
+#' @export
+envelope.HZIP <- function(object, nsim = 100, ...) {
+  envelopeRQR(object, nsim)
+}
