@@ -33,14 +33,13 @@ envelopeRQR <- function(x, nsim = 100) {
 #' Produces a Q-Q plot of residuals from a Hierarchical Zero-Inflated Poisson (HZIP) Model fitted via \code{\link{hzip}}.
 #'
 #' @param object An object of class \code{HZIP}, typically returned by \code{\link{hzip}}.
-#' @param envelope Logical. Whether to add a simulation envelope to the QQ-plot. Default is \code{FALSE}.
 #' @param nsim Integer. Number of simulations used to construct the envelope. Default is \code{100}.
 #' @param ... Additional arguments (currently ignored).
 #'
 #' @details
-#' The function generates QQ-plots of quantile residuals. When \code{envelope = TRUE}, a simulation envelope is added using Monte Carlo replications.
+#' A simulation envelope is added using Monte Carlo replications.
 #'
-#' @return A QQ-plot is produced as a side effect. Nothing is returned.
+#' @return Envelope simulation plot.
 #'
 #' @seealso \code{\link{hzip}}, \code{\link{residuals.HZIP}}
 #'

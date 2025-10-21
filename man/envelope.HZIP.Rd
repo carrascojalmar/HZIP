@@ -12,17 +12,15 @@ envelope.HZIP(object, nsim = 100, ...)
 \item{nsim}{Integer. Number of simulations used to construct the envelope. Default is \code{100}.}
 
 \item{...}{Additional arguments (currently ignored).}
-
-\item{envelope}{Logical. Whether to add a simulation envelope to the QQ-plot. Default is \code{FALSE}.}
 }
 \value{
-A QQ-plot is produced as a side effect. Nothing is returned.
+Envelope simulation plot.
 }
 \description{
 Produces a Q-Q plot of residuals from a Hierarchical Zero-Inflated Poisson (HZIP) Model fitted via \code{\link{hzip}}.
 }
 \details{
-The function generates QQ-plots of quantile residuals. When \code{envelope = TRUE}, a simulation envelope is added using Monte Carlo replications.
+A simulation envelope is added using Monte Carlo replications.
 }
 \examples{
 \dontrun{

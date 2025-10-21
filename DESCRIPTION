@@ -22,5 +22,7 @@ LinkingTo: Rcpp, RcppParallel, RcppArmadillo
 Imports: Rcpp, Formula, pscl, stats, tibble, dplyr, statmod,
         RcppParallel, cubature, VGAM, ggplot2
 Depends: R (>= 3.5)
+URL: https://github.com/carrascojalmar/HZIP
+BugReports: https://github.com/carrascojalmar/HZIP/issues
 NeedsCompilation: yes
-Packaged: 2025-10-21 21:26:16 UTC; jalmarcarrasco
+Packaged: 2025-10-21 21:40:08 UTC; jalmarcarrasco
