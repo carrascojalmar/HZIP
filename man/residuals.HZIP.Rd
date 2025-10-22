@@ -4,7 +4,7 @@
 \alias{residuals.HZIP}
 \title{Compute Residuals for HZIP Models}
 \usage{
-residuals.HZIP(object, ...)
+\method{residuals}{HZIP}(object, ...)
 }
 \arguments{
 \item{object}{An object of class \code{HZIP}, typically returned from \code{\link{hzip}}.}

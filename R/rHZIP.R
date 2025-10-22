@@ -1,3 +1,7 @@
+# rgengamma (interno)
+#' @keywords internal
+#' @noRd
+#' @importFrom stats rgamma rnorm
 rgengamma <- function(n, mu=0, sigma=1, lambda, zero=0.0001) {
   # generates n random generalized loggamma variates
   if (abs(lambda) > zero) {
@@ -107,10 +111,10 @@ rgengamma <- function(n, mu=0, sigma=1, lambda, zero=0.0001) {
 #'
 #' @seealso \code{\link{hzip}} for model fitting.
 #'
-#' @import tibble
-#' @import Formula
-#' @importFrom stats rgamma rnorm rbinom rpois
+# rHZIP
 #' @importFrom dplyr filter
+#' @importFrom tibble tibble
+#' @importFrom stats rbinom rpois
 #' @export
 
 rHZIP <- function(n,m,para,x1,x2){

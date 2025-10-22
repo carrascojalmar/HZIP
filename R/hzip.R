@@ -107,6 +107,8 @@ hzip <- function(formula, data, hessian = TRUE, method = "BFGS",
                       deparse(rhs2[[2]]), "|",
                       deparse(rhs1[[2]]))
 
+  #set.seed(as.numeric(Sys.time()))
+
   fit.aux <- zeroinfl(Formula(as.formula(fAux)),data=data, dist = "poisson",
                       link="cloglog")
 

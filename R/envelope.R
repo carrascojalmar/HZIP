@@ -52,6 +52,7 @@ envelopeRQR <- function(x, nsim = 100) {
 #' }
 #'
 #' @import ggplot2
+#' @import stats
 #'
 #' @export
 envelope.HZIP <- function(object, nsim = 100, ...) {

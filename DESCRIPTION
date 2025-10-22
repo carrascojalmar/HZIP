@@ -25,4 +25,4 @@ Depends: R (>= 3.5)
 URL: https://github.com/carrascojalmar/HZIP
 BugReports: https://github.com/carrascojalmar/HZIP/issues
 NeedsCompilation: yes
-Packaged: 2025-10-21 21:40:08 UTC; jalmarcarrasco
+Packaged: 2025-10-22 17:10:20 UTC; carra

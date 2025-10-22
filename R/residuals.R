@@ -70,8 +70,7 @@ CDF <- function(pi,u,Y){
   }
   return(ll)
 }
-#
-predict.HZIP <- function(Y,w1,w2,theta1,theta2,lower=c(-Inf,-Inf),
+predictHZIP <- function(Y,w1,w2,theta1,theta2,lower=c(-Inf,-Inf),
                          upper=c(Inf,Inf)){
   n <- length(Y)
   b1 <- numeric()
@@ -120,10 +119,10 @@ predict.HZIP <- function(Y,w1,w2,theta1,theta2,lower=c(-Inf,-Inf),
 #' residuals(fit.salamander)
 #' }
 #'
-#' @importFrom stats ppoints model.frame model.matrix model.response qnorm as.formula dnorm dpois ppois quantile rbeta runif
-#' @importFrom dplyr group_split group_by
-#' @importFrom cubature hcubature
+#' @importFrom stats model.response model.frame model.matrix qnorm runif dpois ppois
+#' @importFrom Formula Formula
 #' @importFrom VGAM clogloglink
+#' @importFrom cubature hcubature
 #'
 #' @export
 residuals.HZIP <- function(object,...){
@@ -138,7 +137,7 @@ residuals.HZIP <- function(object,...){
   w1 <- model.matrix(Formula(formula), data = data, rhs = 1)
   w2 <- model.matrix(Formula(formula), data = data, rhs = 2)
 
-  vB <- predict.HZIP(Y,w1,w2,theta1,theta2,lower=c(-Inf,-Inf),
+  vB <- predictHZIP(Y,w1,w2,theta1,theta2,lower=c(-Inf,-Inf),
                      upper=c(Inf,Inf))
   b1 <- vB[,1]
   b2 <- vB[,2]
