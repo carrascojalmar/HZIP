@@ -11,17 +11,26 @@
 ##  library.dynam.unload(chname="HZIP",libpath=libpath)
 ##}
 
-.onAttach <- function(...) {
+.onAttach <- function(libname, pkgname) {
   # Texto base
   msg_lines <- c(
+    sprintf("HZIP version %s", utils::packageVersion(pkgname)),
+    "",
     "Classes and Methods for R originally developed in the",
     "Complex Statistical Modeling Laboratory (CoSMo)",
     "Department of Statistics",
-    "Federal University of Bahia, Brazil (2025),",
+    "Federal University of Bahia, Brazil (2025-2026),",
     "by and under the direction of",
     "Jalmar M. F. Carrasco and Lizandra C. Fabio,",
     "with contributions from collaborators and students.",
-    "Main functions: hzip, residuals, envelope."
+    "",
+    "Main functions:",
+    "  Fitting:      hzip()",
+    "  Diagnostics:  residuals(), envelope()",
+    "  Tests:        testDisp(), testZI()",
+    "  Simulation:   rhzip()",
+    "",
+    "See help(package = \"HZIP\") for details."
   )
 
   # Calcula largura máxima e define margem
