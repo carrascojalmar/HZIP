@@ -18,51 +18,45 @@ import(RcppParallel)
 import(utils)
 importFrom(Formula,Formula)
 importFrom(Rcpp,sourceCpp)
-importFrom(dplyr,
-  filter,
-  group_by,
-  group_split,
-  mutate
-)
-importFrom(ggplot2,
-  aes,
-  element_text,
-  geom_histogram,
-  geom_vline,
-  ggplot,
-  labs,
-  scale_y_continuous,
-  stat_qq,
-  theme,
-  theme_bw
-)
+importFrom(dplyr,filter)
+importFrom(dplyr,group_by)
+importFrom(dplyr,group_split)
+importFrom(dplyr,mutate)
+importFrom(ggplot2,aes)
+importFrom(ggplot2,element_text)
+importFrom(ggplot2,geom_histogram)
+importFrom(ggplot2,geom_vline)
+importFrom(ggplot2,ggplot)
+importFrom(ggplot2,labs)
+importFrom(ggplot2,scale_y_continuous)
+importFrom(ggplot2,stat_qq)
+importFrom(ggplot2,theme)
+importFrom(ggplot2,theme_bw)
 importFrom(numDeriv,hessian)
 importFrom(pscl,zeroinfl)
 importFrom(rlang,.data)
 importFrom(statmod,gauss.quad)
-importFrom(stats,
-  as.formula,
-  dnorm,
-  dpois,
-  model.frame,
-  model.matrix,
-  model.response,
-  nlminb,
-  optim,
-  pnorm,
-  ppoints,
-  ppois,
-  printCoefmat,
-  qnorm,
-  quantile,
-  rbinom,
-  residuals,
-  rgamma,
-  rnorm,
-  rpois,
-  runif,
-  simulate,
-  var
-)
+importFrom(stats,as.formula)
+importFrom(stats,dnorm)
+importFrom(stats,dpois)
+importFrom(stats,model.frame)
+importFrom(stats,model.matrix)
+importFrom(stats,model.response)
+importFrom(stats,nlminb)
+importFrom(stats,optim)
+importFrom(stats,pnorm)
+importFrom(stats,ppoints)
+importFrom(stats,ppois)
+importFrom(stats,printCoefmat)
+importFrom(stats,qnorm)
+importFrom(stats,quantile)
+importFrom(stats,rbinom)
+importFrom(stats,residuals)
+importFrom(stats,rgamma)
+importFrom(stats,rnorm)
+importFrom(stats,rpois)
+importFrom(stats,runif)
+importFrom(stats,simulate)
+importFrom(stats,var)
 importFrom(tibble,tibble)
 useDynLib(HZIP, .registration = TRUE)

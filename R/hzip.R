@@ -10,9 +10,12 @@
 #' \code{pscl::zeroinfl(..., dist = "poisson", link = "cloglog")}.
 #'
 #' @param formula A two-part \link[Formula]{Formula} of the form
-#'   \code{y ~ w_zero + ... | x_count + ...}, where the right-hand side before
-#'   the bar specifies covariates for the zero-inflation component and the
-#'   right-hand side after the bar specifies covariates for the Poisson mean.
+#'   \code{y ~ x_zero + ... | w_count + ...} (matching the column-naming
+#'   convention used by \code{\link{rhzip}}: the zero-inflation design comes
+#'   from \code{x1}, the count design from \code{x2}), where the right-hand
+#'   side before the bar specifies covariates for the zero-inflation
+#'   component and the right-hand side after the bar specifies covariates
+#'   for the Poisson mean.
 #' @param data A \code{data.frame} containing all variables used in
 #'   \code{formula} and a subject identifier named \code{Ind} (one row per
 #'   observation).
@@ -87,10 +90,11 @@
 #' \item{scale_zero}{Estimated scale (zero part).}
 #' \item{scale_count}{Estimated scale (count part).}
 #' \item{loglik}{Maximized log-likelihood.}
-#' \item{loglikz}{Auxiliary log-likelihood from \code{mlez_hat}.}
 #' \item{AIC, BIC}{Information criteria based on \code{loglik}.}
-#' \item{AICz, BICz}{Information criteria based on \code{loglikz}.}
 #' \item{convergence}{Convergence code (0 = success).}
+#' (\code{loglikz}, \code{AICz}, \code{BICz} and the \code{AIC_HZIP}/\code{BIC_HZIP}
+#' contrasts are currently disabled/commented out in the code and are not
+#' part of the returned object or printed output for now.)
 #' \item{n}{Number of observations.}
 #' \item{m}{Cluster sizes per subject (vector ordered by \code{Ind}).}
 #' \item{ep}{Approximate standard errors (square roots of the diagonal of the
@@ -293,9 +297,11 @@ hzip <- function(formula, data, hessian = TRUE, method = "BFGS",
     }
   }
 
-  loglikz <- mlez_hat(op$par, xlist, wlist, ylist)
+  # loglikz/npar_z/AICz/BICz comentados por ora (nao exibir/calcular estas
+  # medidas auxiliares enquanto nao forem necessarias):
+  # loglikz <- mlez_hat(op$par, xlist, wlist, ylist)
   npar    <- length(op$par)        #  p1 + p2 + 2
-  npar_z  <- p1 + 1                # ell_z: beta_zero (p1) + lambda_1 (1)
+  # npar_z  <- p1 + 1                # ell_z: beta_zero (p1) + lambda_1 (1)
 
   fit.hzip <- list(
     call = match.call(),
@@ -305,11 +311,11 @@ hzip <- function(formula, data, hessian = TRUE, method = "BFGS",
     scale_zero  = op$par[1],
     scale_count = op$par[p1 + 2],
     loglik  = -op$value,
-    loglikz = loglikz,
+    # loglikz = loglikz,
     AIC  = -2 * (-op$value) + 2 * npar,
     BIC  = -2 * (-op$value) + log(nrow(data)) * npar,
-    AICz = -2 * loglikz     + 2 * npar_z,
-    BICz = -2 * loglikz     + log(nrow(data)) * npar_z,
+    # AICz = -2 * loglikz     + 2 * npar_z,
+    # BICz = -2 * loglikz     + log(nrow(data)) * npar_z,
     convergence = op$convergence,
     n   = as.numeric(max(data$Ind)), #nrow(data),
     m   = as.numeric(table(data$Ind)),
@@ -356,7 +362,7 @@ summary.hzip <- function(object, ...) {
   ep           <- object$ep
   iter         <- object$iter
   loglik       <- object$loglik
-  loglikz      <- object$loglikz
+  # loglikz      <- object$loglikz
   n            <- object$n
   convergence  <- object$convergence
 
@@ -417,13 +423,13 @@ summary.hzip <- function(object, ...) {
   out <- list(
     call         = object$call,
     loglik       = loglik,
-    loglikz      = loglikz,
+    # loglikz      = loglikz,
     AIC          = object$AIC,
     BIC          = object$BIC,
-    AICz         = object$AICz,
-    BICz         = object$BICz,
-    AIC_HZIP     = object$AIC  - object$AICz,
-    BIC_HZIP     = object$BIC  - object$BICz,
+    # AICz         = object$AICz,
+    # BICz         = object$BICz,
+    # AIC_HZIP     = object$AIC  - object$AICz,
+    # BIC_HZIP     = object$BIC  - object$BICz,
     iter         = iter,
     coef_zero    = df_coef_zero,
     coef_count   = df_coef_count,
@@ -458,19 +464,19 @@ print.summary.hzip <- function(x, digits = 5, ...) {
   fmt_int <- function(v) center(formatC(v, format = "d"))
   fmt_lab <- function(s) center(s)
 
-  labs1 <- c("logLik", "AIC", "BIC", "Iter")
+  labs1 <- c("logLik", "AIC", "BIC", "Iter", "Convergence")
   vals1 <- c(fmt_num(x$loglik), fmt_num(x$AIC),
-             fmt_num(x$BIC),    fmt_int(x$iter))
+             fmt_num(x$BIC),    fmt_int(x$iter), fmt_int(x$convergence))
   cat(paste0(vapply(labs1, fmt_lab, character(1)), collapse = ""), "\n", sep = "")
   cat(paste0(vals1, collapse = ""), "\n", sep = "")
 
-  labs2 <- c("AICz", "BICz", "AIC_HZIP", "BIC_HZIP")
-  vals2 <- c(fmt_num(x$AICz), fmt_num(x$BICz),
-             fmt_num(x$AIC_HZIP), fmt_num(x$BIC_HZIP))
-  cat(paste0(vapply(labs2, fmt_lab, character(1)), collapse = ""), "\n", sep = "")
-  cat(paste0(vals2, collapse = ""), "\n", sep = "")
+  # labs2 <- c("AICz", "BICz", "AIC_HZIP", "BIC_HZIP")
+  # vals2 <- c(fmt_num(x$AICz), fmt_num(x$BICz),
+  #            fmt_num(x$AIC_HZIP), fmt_num(x$BIC_HZIP))
+  # cat(paste0(vapply(labs2, fmt_lab, character(1)), collapse = ""), "\n", sep = "")
+  # cat(paste0(vals2, collapse = ""), "\n", sep = "")
 
-  cat("Convergence:", x$convergence, "\n\n")
+  cat("\n")
 
   # ---- Coeficients ----
   cat("Coefficients (Zero part):\n")

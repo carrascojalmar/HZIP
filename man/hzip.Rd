@@ -23,9 +23,12 @@ hzip(
 }
 \arguments{
 \item{formula}{A two-part \link[Formula]{Formula} of the form
-\code{y ~ w_zero + ... | x_count + ...}, where the right-hand side before
-the bar specifies covariates for the zero-inflation component and the
-right-hand side after the bar specifies covariates for the Poisson mean.}
+\code{y ~ x_zero + ... | w_count + ...} (matching the column-naming
+convention used by \code{\link{rhzip}}: the zero-inflation design comes
+from \code{x1}, the count design from \code{x2}), where the right-hand
+side before the bar specifies covariates for the zero-inflation
+component and the right-hand side after the bar specifies covariates
+for the Poisson mean.}
 
 \item{data}{A \code{data.frame} containing all variables used in
 \code{formula} and a subject identifier named \code{Ind} (one row per
@@ -88,10 +91,11 @@ An object of class \code{"hzip"}, a \code{list} with elements:
 \item{scale_zero}{Estimated scale (zero part).}
 \item{scale_count}{Estimated scale (count part).}
 \item{loglik}{Maximized log-likelihood.}
-\item{loglikz}{Auxiliary log-likelihood from \code{mlez_hat}.}
 \item{AIC, BIC}{Information criteria based on \code{loglik}.}
-\item{AICz, BICz}{Information criteria based on \code{loglikz}.}
 \item{convergence}{Convergence code (0 = success).}
+(\code{loglikz}, \code{AICz}, \code{BICz} and the \code{AIC_HZIP}/\code{BIC_HZIP}
+contrasts are currently disabled/commented out in the code and are not
+part of the returned object or printed output for now.)
 \item{n}{Number of observations.}
 \item{m}{Cluster sizes per subject (vector ordered by \code{Ind}).}
 \item{ep}{Approximate standard errors (square roots of the diagonal of the

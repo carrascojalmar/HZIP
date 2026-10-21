@@ -29,10 +29,14 @@ Internally, the linear predictors are
 and \eqn{\mu_{ij} = \exp(\eta^{(1)}_{ij})} (log link for counts).}
 
 \item{x1}{Numeric matrix of covariates for the zero-inflation part
-(dimension \code{sum(m)} by \code{p1}). Include an intercept column if desired.}
+(dimension \code{sum(m)} by \code{p1}). Include an intercept column if
+desired; every column supplied is kept in the output (see
+\strong{Column naming}).}
 
 \item{x2}{Numeric matrix of covariates for the count part
-(dimension \code{sum(m)} by \code{p2}). Include an intercept column if desired.}
+(dimension \code{sum(m)} by \code{p2}). Include an intercept column if
+desired; every column supplied is kept in the output (see
+\strong{Column naming}).}
 }
 \value{
 A \code{tibble} with columns:
@@ -69,10 +73,15 @@ zeros.
 }
 \section{Column naming}{
 
-Columns of \code{x1} are renamed to \code{x1, x2, ..., xp1}.
-Columns of \code{x2} are copied except the first column is dropped and the
-remaining are renamed \code{w1, w2, ..., w_{p2-1}}. (This mirrors the current
-implementation that excludes the first \code{x2} column from the output.)
+All columns of \code{x1} are kept and renamed \code{x1, x2, ..., xp1}
+(zero-inflation part). All columns of \code{x2} are kept and renamed
+\code{w1, w2, ..., wp2} (count part). No column is dropped: if \code{x1}
+and/or \code{x2} include an intercept column (a column of 1's), it is
+preserved in the output (as \code{x1} and/or \code{w1}, respectively) and
+can be referenced explicitly in the \code{\link{hzip}} formula (using
+\code{-1} on that side to avoid R adding a duplicate automatic intercept),
+or simply omitted from the formula (letting R's automatic intercept play
+the same role).
 }
 
 \section{Dependencies}{
@@ -106,6 +115,30 @@ para <- c(lambda1, beta1, lambda2, beta2)
 sim <- rhzip(n, m, para, x1, x2)
 head(sim)
 attr(sim, "propZeros")
+
+# Fit it back with hzip(). With the new convention NO column is dropped,
+# so x1 (2 cols: intercept, slope) comes out as "x1,x2" and x2 (3 cols:
+# intercept, slope, slope) comes out as "w1,w2,w3". Referencing only the
+# real slopes ("x2" and "w2+w3") and letting R's formula add the
+# intercept automatically reproduces the true model exactly (equivalently,
+# one could write "x1+x2-1 | w1+w2+w3-1" using the explicit intercept
+# columns and disabling the automatic one).
+fit <- hzip(y ~ x2 | w2 + w3, data = sim)
+summary(fit)
+
+# Example WITHOUT an intercept in the zero part (e.g. simulation Scenario 1
+# style): x1 has no column of 1's, so every column of x1 is a real slope
+# and must be fit with "-1" to avoid an automatic (spurious) intercept.
+n2 <- 200; m2 <- rep(4, n2); N2 <- sum(m2)
+w1b <- rep(rnorm(n2), times = m2)
+w2b <- rep(runif(n2), times = m2)
+x1b <- cbind(w1b, w2b)             # zero part: NO intercept
+x2b <- cbind(1, w1b, w2b)          # count part: WITH intercept
+parab <- c(0.8, 1, -1, 0.5, 1, 1, 1)   # (lambda1,beta11,beta12,lambda2,beta20,beta21,beta22)
+simb <- rhzip(n2, m2, parab, x1b, x2b)
+head(simb)   # columns: Ind, y, x1, x2 (zero part, both real slopes), w1, w2, w3 (count part)
+fitb <- hzip(y ~ x1 + x2 - 1 | w2 + w3, data = simb)
+summary(fitb)
 
 }
 \seealso{

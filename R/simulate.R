@@ -3,7 +3,7 @@
 #' Generates \code{nsim} replicated response vectors from a fitted
 #' \code{hzip} model by sampling latent random effects from the
 #' Generalized Log-Gamma distribution and then drawing from the
-#' hurdle-Poisson component.
+#' ZIP (zero-inflated Poisson) mixture component.
 #'
 #' @param object An object of class \code{hzip}, typically obtained
 #'   from \code{\link{hzip}}.
@@ -31,8 +31,11 @@
 #'         \eqn{\pi_i = 1 - \exp\{-\exp(\eta_i + b_{1i})\}} and
 #'         \eqn{\mu_i = \exp(\rho_i + b_{2i})}.
 #'   \item Draws \eqn{Y_i}: with probability \eqn{\pi_i} sets
-#'         \eqn{Y_i = 0}; otherwise draws from a zero-truncated
-#'         \eqn{\mathrm{Poisson}(\mu_i)} via rejection sampling.
+#'         \eqn{Y_i = 0} (structural zero); otherwise draws
+#'         \eqn{Y_i \sim \mathrm{Poisson}(\mu_i)} (an ordinary,
+#'         non-truncated Poisson draw, which can itself be zero,
+#'         exactly as in the ZIP/HZIP mixture
+#'         \eqn{P(Y_i=0)=\pi_i+(1-\pi_i)e^{-\mu_i}}).
 #' }
 #'
 #' @seealso \code{\link{hzip}}, \code{\link{testDisp}},
@@ -86,15 +89,10 @@ simulate.hzip <- function(object, nsim = 1, seed = NULL, ...) {
     zero_i  <- runif(n) < pi_i
     y_count <- rpois(n, lambda = mu_i)
 
-    retry   <- which(!zero_i & y_count == 0)
-    max_try <- 100L
-    iter    <- 0L
-    while (length(retry) > 0 && iter < max_try) {
-      y_count[retry] <- rpois(length(retry), lambda = mu_i[retry])
-      retry <- retry[y_count[retry] == 0]
-      iter  <- iter + 1L
-    }
-
+    # y_count e um Poisson comum (NAO truncado em zero): o modelo ZIP/HZIP
+    # permite zeros "extras" vindos do proprio processo de contagem, alem
+    # dos zeros estruturais (zero_i). Isso reproduz
+    # P(Y=0) = pi + (1-pi)*exp(-mu), igual ao definido em hzip() e residuals.R.
     ifelse(zero_i, 0L, y_count)
   })
 
