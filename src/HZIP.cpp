@@ -345,7 +345,11 @@ double dBerLGG(NumericVector& theta1,
   // Geração de S~ : s_j in {0,1}, sem restrição extra além de z_j
   // (Kappas com argumento z gera tamanho 2^{soma(z)}, com s_j=0 forçado quando z_j=0;
   //  isso bate com a hipótese natural de S~ = {s : s_j=0 se y_j>0, s_j in {0,1} se y_j=0}.)
-  NumericMatrix mS = Kappas(mZ);
+  // s_j so varia quando y_j = 0 E k_j = 0 (zero estrutural, termo pi_j = 1 - exp(-ptil_j U));
+  // quando k_j = 1 o termo e (1 - pi_j) exp(-mu_j U2), que nao tem soma alternada.
+  IntegerVector mSfree(mi);
+  for (int i = 0; i < mi; i++) mSfree[i] = (mZ[i] == 1 && k[i] < 0.5) ? 1 : 0;
+  NumericMatrix mS = Kappas(mSfree);
   int nc = mS.nrow();
 
   NumericVector s_mas(nc);

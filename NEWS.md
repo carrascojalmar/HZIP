@@ -1,3 +1,12 @@
+# HZIP 0.1.5
+
+   * Fixed the marginal likelihood of the zero-inflation component (`dBerLGG`):
+     the alternating sum over s was taken over all observed zeros, including
+     those with k_j = 1, which produced biased estimates whenever clusters
+     contained zeros. The sum now runs only over positions with y_j = 0 and
+     k_j = 0, matching the expansion of pi^(z - k) in Theorem 1.
+   * Slow model fits in the `rhzip()` examples are now wrapped in `\donttest{}`.
+   
 # HZIP 0.1.4
 
 * Fixed a bug in `rhzip()` where the Bernoulli draw used to generate

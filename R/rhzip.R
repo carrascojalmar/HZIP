@@ -123,12 +123,15 @@ rgengamma <- function(n, mu=0, sigma=1, lambda, zero=0.0001) {
 #' # intercept automatically reproduces the true model exactly (equivalently,
 #' # one could write "x1+x2-1 | w1+w2+w3-1" using the explicit intercept
 #' # columns and disabling the automatic one).
+#' \donttest{
 #' fit <- hzip(y ~ x2 | w2 + w3, data = sim)
 #' summary(fit)
+#' }
 #'
 #' # Example WITHOUT an intercept in the zero part (e.g. simulation Scenario 1
 #' # style): x1 has no column of 1's, so every column of x1 is a real slope
 #' # and must be fit with "-1" to avoid an automatic (spurious) intercept.
+#' \donttest{
 #' n2 <- 200; m2 <- rep(4, n2); N2 <- sum(m2)
 #' w1b <- rep(rnorm(n2), times = m2)
 #' w2b <- rep(runif(n2), times = m2)
@@ -139,6 +142,7 @@ rgengamma <- function(n, mu=0, sigma=1, lambda, zero=0.0001) {
 #' head(simb)   # columns: Ind, y, x1, x2 (zero part, both real slopes), w1, w2, w3 (count part)
 #' fitb <- hzip(y ~ x1 + x2 - 1 | w2 + w3, data = simb)
 #' summary(fitb)
+#' }
 #'
 #' @seealso \code{\link{hzip}} for model fitting.
 #'
